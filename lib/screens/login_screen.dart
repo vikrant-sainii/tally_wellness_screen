@@ -4,6 +4,7 @@ import 'package:tally_screen/bloc/user_event.dart';
 import 'package:tally_screen/bloc/user_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tally_screen/screens/home_screen.dart';
+import 'package:tally_screen/screens/preview_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,22 +18,36 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
+    return Scaffold(
         backgroundColor: Color(0xF5F5F5F5),
         body: Container(
           padding: EdgeInsets.all(10),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SizedBox(height: 20,),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: ElevatedButton(
+                    onPressed: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const Preview(),
+                        ),
+                      );
+                    }, 
+                    child: Text("Preview UI",style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold),),
+                    ),
+                  ),
+              Spacer(),
               Text("Try Out: test_user"),
               resuableTextField(hintText: "Enter user id", controller: userid),
               BlocListener<UserBloc, UserState>(
                 listener: (context, state) {
                   //calling test id to reload and navigate
                   if (state.user != null) {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const MyApp(),
@@ -53,11 +68,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 child: Text("GO TRIAL")),
               ),
+              Spacer(),
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }
 

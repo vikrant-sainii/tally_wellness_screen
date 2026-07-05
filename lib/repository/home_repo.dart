@@ -54,4 +54,18 @@ class UserRepository {
               pendingGuides,
         });
   }
+  Future<void> addPendingGuide({
+    required String userId,
+    required String guideId,
+  }) async {
+    await firestore
+        .collection('users')
+        .doc(userId)
+        .update({
+      'pendingGuides':
+          FieldValue.arrayUnion(
+        [guideId],
+      ),
+    });
+  }
 }

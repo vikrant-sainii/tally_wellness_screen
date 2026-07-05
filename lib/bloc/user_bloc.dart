@@ -7,22 +7,49 @@ import '../repository/guide_repo.dart';
 import 'package:logger/logger.dart';
 import '../models/quote_model.dart';
 import '../repository/quote_repo.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 
 class UserBloc extends Bloc<UserEvent, UserState> {
   final UserRepository userRepo;
   final GuideRepository guideRepo;
   final QuoteRepository quoteRepo;
   final Logger logger = Logger();
-  
-  UserBloc({required this.userRepo, required this.guideRepo,required this.quoteRepo})
-    : super(const UserState()) {
+  final Connectivity _connectivity = Connectivity();
+
+  late final StreamSubscription<List<ConnectivityResult>>
+  _connectivitySubscription;
+
+  UserBloc({
+    required this.userRepo,
+    required this.guideRepo,
+    required this.quoteRepo,
+  }) : super(const UserState()) {
     on<LoadHome>(_onLoadHome);
     on<CompleteCheckIn>(_onCompleteCheckIn);
+    on<AddPendingGuide>(_onAddPendingGuide);
+    on<WentOffline>(_onWentOffline);
+    on<WentOnline>(_onWentOnline);
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((
+      results,
+    ) {
+      if (results.contains(ConnectivityResult.none)) {
+        add(WentOffline());
+      } else {
+        add(WentOnline());
+      }
+    });
   }
+
+  @override
+  Future<void> close() {
+    _connectivitySubscription.cancel();
+    return super.close();
+  }
+
   //dynamic greeting function
   String _greeting(String name) {
-    final hour =
-        DateTime.now().hour;
+    final hour = DateTime.now().hour;
     if (hour < 12) {
       return 'Morning';
     }
@@ -31,10 +58,9 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     }
     return 'Evening';
   }
+
   //function to check if thisweek checkin pending
-  bool _hasCheckedInThisWeek(
-    DateTime? lastCheckInAt,
-  ) {
+  bool _hasCheckedInThisWeek(DateTime? lastCheckInAt) {
     if (lastCheckInAt == null) {
       return false;
     }
@@ -44,13 +70,10 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       now.year,
       now.month,
       now.day,
-    ).subtract(
-      Duration(days: now.weekday - 1),
-    );
-    return lastCheckInAt.isAfter(
-      startOfWeek,
-    );
+    ).subtract(Duration(days: now.weekday - 1));
+    return lastCheckInAt.isAfter(startOfWeek);
   }
+
   Future<void> _onLoadHome(LoadHome event, Emitter<UserState> emit) async {
     try {
       emit(state.copyWith(isLoading: true));
@@ -61,10 +84,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
           ? <GuideModel>[]
           : await guideRepo.getMoodGuides(user.lastMood!);
       final quoteMessage = await quoteRepo.getQuoteForMood(user.lastMood!);
-      final checkedIn =
-      _hasCheckedInThisWeek(
-        user.lastCheckInAt,
-      );
+      final checkedIn = _hasCheckedInThisWeek(user.lastCheckInAt);
       emit(
         state.copyWith(
           isLoading: false,
@@ -91,29 +111,63 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     if (user == null) {
       return;
     }
-
     try {
       await userRepo.completeCheckIn(userId: user.id, mood: event.mood);
-
       final updatedUser = user.copyWith(
         hasCheckedInThisWeek: true,
         lastMood: event.mood,
         lastCheckInAt: DateTime.now(),
       );
       final mood = await guideRepo.getMoodGuides(event.mood);
-      
-      emit(state.copyWith(user: updatedUser,
-      moodGuides: mood,
-      quoteMessage: const QuoteModel(
-        title: 'Done for this week.',
-        description:
-            'Thank you for checking in with yourself. We will be here next week.',
+      String str = 'Done for this week.';
+      String detail ='Thank you for checking in with yourself. We will be here next week.';
+      if (state.hasCheckedIn == true) {
+        str = "Mood Changed! Check 'Your Guide' Section Now";
+        detail ='PowerFul person is the one know himself better than anyone';
+      }
+      emit(
+        state.copyWith(
+          user: updatedUser,
+          moodGuides: mood,
+          quoteMessage: QuoteModel(
+            title: str,
+            description: detail,    
+          ),
         ),
-      ),
-
-    );
+      );
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
+  }
+
+  Future<void> _onAddPendingGuide(
+    AddPendingGuide event,
+    Emitter<UserState> emit,
+  ) async {
+    final user = state.user;
+
+    if (user == null) return;
+
+    // Prevent duplicates
+    if (state.pendingGuides.any((g) => g.id == event.guide.id)) {
+      return;
+    }
+
+    try {
+      await userRepo.addPendingGuide(userId: user.id, guideId: event.guide.id);
+      emit(
+        state.copyWith(pendingGuides: [...state.pendingGuides, event.guide]),
+      );
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  void _onWentOffline(WentOffline event, Emitter<UserState> emit) {
+    emit(state.copyWith(isOffline: true));
+  }
+
+  void _onWentOnline(WentOnline event, Emitter<UserState> emit) {
+    emit(state.copyWith(isOffline: false));
   }
 }

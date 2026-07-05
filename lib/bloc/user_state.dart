@@ -13,6 +13,7 @@ class UserState {
   final bool hasCheckedIn;
   final String greeting;
   final String? error;
+  final bool isOffline; 
 
   const UserState({
     this.user,
@@ -24,6 +25,7 @@ class UserState {
     this.hasCheckedIn = false,
     this.greeting = '',
     this.error,
+    this.isOffline=false,
   });
 
   UserState copyWith({
@@ -36,6 +38,7 @@ class UserState {
     bool? hasCheckedIn,
     String? greeting,
     String? error,
+    bool? isOffline,
   }) {
     return UserState(
       user: user ?? this.user,
@@ -47,6 +50,7 @@ class UserState {
       hasCheckedIn: hasCheckedIn ?? this.hasCheckedIn,
       greeting: greeting ?? this.greeting,
       error: error ?? this.error,
+      isOffline: isOffline ?? this.isOffline,
     );
   }
 }

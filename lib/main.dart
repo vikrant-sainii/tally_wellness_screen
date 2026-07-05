@@ -8,6 +8,8 @@ import 'package:tally_screen/repository/quote_repo.dart';
 import 'package:tally_screen/screens/login_screen.dart';
 import 'firebase_options.dart';
 
+
+//home_screen
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -20,7 +22,7 @@ Future<void> main() async {
         guideRepo: GuideRepository(),
         quoteRepo: QuoteRepository(),
       ),
-      child: const LoginScreen(),
+      child: MaterialApp(debugShowCheckedModeBanner: false,home: const LoginScreen()),
     ),
   );
 }
