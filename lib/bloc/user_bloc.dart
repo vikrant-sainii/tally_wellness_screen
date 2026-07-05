@@ -114,7 +114,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     try {
       await userRepo.completeCheckIn(userId: user.id, mood: event.mood);
       final updatedUser = user.copyWith(
-        hasCheckedInThisWeek: true,
+        onboardingDone: true,
         lastMood: event.mood,
         lastCheckInAt: DateTime.now(),
       );
@@ -133,6 +133,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
             title: str,
             description: detail,    
           ),
+          hasCheckedIn: true
         ),
       );
     } catch (e) {

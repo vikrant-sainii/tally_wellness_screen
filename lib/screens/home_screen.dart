@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
                         title: "Your first check-in.",
                         description:
                             "Five minutes. There's no wrong answer here.",
-                        checkedin: state.hasCheckedIn,
+                        state: state,
                         context: context,
                       )
                     else if (state.hasCheckedIn == false)
@@ -82,7 +82,7 @@ class MyApp extends StatelessWidget {
                         title: "Five quiet minutes.",
                         description:
                             "Your weekly check-in is ready when you are. No pressure to do it now.",
-                        checkedin: state.hasCheckedIn,
+                        state: state,
                         context: context,
                       )
                     else
@@ -92,8 +92,9 @@ class MyApp extends StatelessWidget {
                         description:
                             state.quoteMessage?.description ??
                             "Thank you for checking in with yourself.",
-                        checkedin: state.hasCheckedIn,
-                        context: context,
+                        state: state,
+                        context: context
+
                       ),
                     SizedBox(height: 40),
 
@@ -264,7 +265,7 @@ Row resusableSectionTitle({required String title}) {
 Container resuableCheckinCard({
   required String title,
   required String description,
-  required bool checkedin,
+  required UserState state,
   required BuildContext context,
 }) {
   return Container(
@@ -302,12 +303,13 @@ Container resuableCheckinCard({
           ],
         ),
         SizedBox(height: 10),
-        if (!checkedin)
+        if (!(state.user!.onboardingDone) || !state.hasCheckedIn )
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
               onPressed: () {
-                context.read<UserBloc>().add(CompleteCheckIn("sad"));
+                showMoodPicker(context);
+
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,

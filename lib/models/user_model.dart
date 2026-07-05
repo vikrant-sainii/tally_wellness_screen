@@ -11,7 +11,7 @@ class UserModel {
     required this.id,
     required this.name,
     required this.onboardingDone,
-    this.lastMood,
+    this.lastMood = "",
     this.lastCheckInAt,
     this.pendingGuides,
   });
@@ -42,7 +42,6 @@ class UserModel {
     String? id,
     String? name,
     bool? onboardingDone,
-    bool? hasCheckedInThisWeek,
     String? lastMood,
     DateTime? lastCheckInAt,
     List<String>? pendingGuides,
