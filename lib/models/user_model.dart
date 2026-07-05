@@ -3,17 +3,17 @@ class UserModel {
   final String id;
   final String name;
   final bool onboardingDone;
-  final bool hasCheckedInThisWeek;
   final String? lastMood;
   final DateTime? lastCheckInAt;
+  final List<String>? pendingGuides;
 
   const UserModel({
     required this.id,
     required this.name,
     required this.onboardingDone,
-    required this.hasCheckedInThisWeek,
     this.lastMood,
     this.lastCheckInAt,
+    this.pendingGuides,
   });
 
   factory UserModel.fromJson(
@@ -22,27 +22,19 @@ class UserModel {
   ) {
     return UserModel(
       id: id,
-      name: json['name'] ?? '',
+      name: json['name'] ?? ' ',
       onboardingDone: json['onboardingDone'] ?? false,
-      hasCheckedInThisWeek:
-          json['hasCheckedInThisWeek'] ?? false,
       lastMood: json['lastMood'],
-      lastCheckInAt:
-          (json['lastCheckInAt'] as Timestamp?)
-              ?.toDate(),
+      lastCheckInAt:(json['lastCheckInAt'] as Timestamp?)?.toDate(),
+      pendingGuides: List<String>.from(json['pendingGuides']??[]),
     );
   }
-
   Map<String, dynamic> toJson() {
     return {
       'name': name,
       'onboardingDone': onboardingDone,
-      'hasCheckedInThisWeek':
-          hasCheckedInThisWeek,
       'lastMood': lastMood,
-      'lastCheckInAt': lastCheckInAt == null
-          ? null
-          : Timestamp.fromDate(lastCheckInAt!),
+      'lastCheckInAt': lastCheckInAt == null? null:Timestamp.fromDate(lastCheckInAt!),
     };
   }
 
@@ -53,14 +45,15 @@ class UserModel {
     bool? hasCheckedInThisWeek,
     String? lastMood,
     DateTime? lastCheckInAt,
+    List<String>? pendingGuides,
   }) {
     return UserModel(
       id: id ?? this.id,
       name: name ?? this.name,
       onboardingDone:onboardingDone ??this.onboardingDone,
-      hasCheckedInThisWeek:hasCheckedInThisWeek ??this.hasCheckedInThisWeek,
       lastMood: lastMood ?? this.lastMood,
       lastCheckInAt:lastCheckInAt ??this.lastCheckInAt,
+      pendingGuides:pendingGuides ?? this.pendingGuides,
     );
   }
 }
